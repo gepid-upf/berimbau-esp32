@@ -123,7 +123,8 @@ void Urm37::config_rmt()
 
     // Don't install. Not using default interrupt, nor ringbuffer
     //rmt_driver_install(rmt_channel, 0, ESP_INTR_FLAG_IRAM);
-    rmt_isr_register(pwm_isr, this, ESP_INTR_FLAG_IRAM, nullptr);
+    // ESP_INTR_FLAG_IRAM
+    rmt_isr_register(pwm_isr, this, 0, nullptr);
     rmt_set_rx_intr_en(rmt_channel, true);
 }
 

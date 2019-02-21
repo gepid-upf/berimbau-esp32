@@ -12,93 +12,83 @@
  * @brief Berimbau is a digital toy to help kids with music learning.
  */
 
-/**
- * Pin assignment:
- *      GPIO25  -   DAC Channel 1 (MSB)
- *      GPIO26  -   DAC Channel 2 (LSB)
- * 
- *      GPIO23  -   Button "Moeda"
- *      GPIO22  -   Button "Presa"
- *      GPIO18  -   Button "Caxixi"
- *      GPIO19  -   Button "Solta"
- */
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include <Game.h>
+#include <Interface.h>
 #include <Audio.h>
 #include <Button.h>
 #include <Led.h>
-#include <Urm37.h>
 
 #include "moeda.h" // Just for testing
 #include "presa.h"
 #include "caxixi.h"
 #include "solta.h"
 
-static Button b_moeda(GPIO_NUM_23);
-static Button b_caxixi(GPIO_NUM_22);
-static Button b_solta(GPIO_NUM_19);
-static Button b_presa(GPIO_NUM_18);
+// Members that are added to a static vector inside the class must be initialized here.
+static Button b_moeda(GPIO_NUM_19);
+static Button b_caxixi(GPIO_NUM_18);
+static Button b_presa(GPIO_NUM_17);
+static Button b_solta(GPIO_NUM_16);
 
-static Audio a_moeda(moeda_data, moeda_length);
-static Audio a_caxixi(caxixi_data, caxixi_length, false);
-static Audio a_solta(solta_data, solta_length);
-static Audio a_presa(presa_data, presa_length);
+static Button b_blue(GPIO_NUM_22);
+static Button b_red(GPIO_NUM_32);
+static Button b_green(GPIO_NUM_33);
+static Button b_pink(GPIO_NUM_23);
+
+static Button b_left(GPIO_NUM_39);
+static Button b_right(GPIO_NUM_35);
+static Button b_up(GPIO_NUM_36);
+static Button b_down(GPIO_NUM_34);
+
+static Audio DRAM_ATTR a_moeda(moeda_data, moeda_length);
+static Audio DRAM_ATTR a_caxixi(caxixi_data, caxixi_length, false);
+static Audio DRAM_ATTR a_solta(solta_data, solta_length);
+static Audio DRAM_ATTR a_presa(presa_data, presa_length);
 
 static Led l_moeda(GPIO_NUM_5);
-static Led l_caxixi(GPIO_NUM_17);
-static Led l_solta(GPIO_NUM_4);
-static Led l_presa(GPIO_NUM_16);
-
-static Urm37 urm(GPIO_NUM_2, GPIO_NUM_15);
+static Led l_caxixi(GPIO_NUM_4);
+static Led l_presa(GPIO_NUM_0);
+static Led l_solta(GPIO_NUM_2);
 
 static const char* TAG = "MAIN";
 
-static void btn_tmp_task(void *param)
-{
-    while(true){
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        // Check buttons. Can be done outside of ISR (dont need 44.1KHz, maybe 1KHz is OK)
-        if(b_moeda.get_state() == Button::State::PRESSED) {
-            a_moeda.set_active();
-            a_solta.set_active(false); // Moeda (coin) presses the string and the solta (loose) sound stops.
-            l_moeda.blink(a_moeda.get_length()/44.101);
-            l_solta.turn_off();
-        }
-        if(b_presa.get_state() == Button::State::PRESSED){
-            a_presa.set_active();
-            a_solta.set_active(false);
-            l_presa.blink(a_presa.get_length()/44.101);
-            l_solta.turn_off();
-        }
-        if(b_caxixi.get_state() == Button::State::PRESSED){
-            a_caxixi.set_active();
-            l_caxixi.blink(a_caxixi.get_length()/44.101);
-        }
-        if(b_solta.get_state() == Button::State::PRESSED){
-            a_solta.set_active();
-            l_solta.blink(a_solta.get_length()/44.101);
-        }
-    }
-}
-
-static void urm_task(void *nullpar)
-{
-    urm.init();
-
-    while(true){
-        if(urm.pulse_trigger()) // No need for vTaskDelay. It already has a semaphore inside.
-            Audio::set_muffle_cutoff(urm.get_pulse_us()*20);
-    }
-}
-
 extern "C" void app_main()
 {
+    Interface::pre_init(); // Init the LCD and the Semaphore first for loading screen
+
+    Interface::set_button(&b_blue, Interface::Direction::D_X);
+    Interface::set_button(&b_red, Interface::Direction::D_O);
+    Interface::set_button(&b_green, Interface::Direction::D_T);
+    Interface::set_button(&b_pink, Interface::Direction::D_S);
+
+    Interface::set_button(&b_right, Interface::Direction::D_RIGHT);
+    Interface::set_button(&b_left, Interface::Direction::D_LEFT);
+    Interface::set_button(&b_up, Interface::Direction::D_UP);
+    Interface::set_button(&b_down, Interface::Direction::D_DOWN);
+
+    Game::set_button(&b_moeda, Game::Instrument::MOEDA);
+    Game::set_button(&b_caxixi, Game::Instrument::CAXIXI);
+    Game::set_button(&b_presa, Game::Instrument::PRESA);
+    Game::set_button(&b_solta, Game::Instrument::SOLTA);
+
+    Game::set_audio(&a_moeda, Game::Instrument::MOEDA);
+    Game::set_audio(&a_caxixi, Game::Instrument::CAXIXI);
+    Game::set_audio(&a_presa, Game::Instrument::PRESA);
+    Game::set_audio(&a_solta, Game::Instrument::SOLTA);
+
+    Game::set_led(&l_moeda, Game::Instrument::MOEDA);
+    Game::set_led(&l_caxixi, Game::Instrument::CAXIXI);
+    Game::set_led(&l_presa, Game::Instrument::PRESA);
+    Game::set_led(&l_solta, Game::Instrument::SOLTA);
+
+    xTaskCreate(Interface::task, "Interface Task", 16384, nullptr, 6, nullptr);
+
     Audio::init();  // TimerG0 Timer0 interrupt 44.1KHz for Audio.
+
     xTaskCreate(Button::task, "Button_task", 2048, nullptr, 11, nullptr);   // Updates the Button status.
-    xTaskCreate(Led::task, "LED Task", 2048, nullptr, 8, nullptr);
-    
-    xTaskCreate(btn_tmp_task, "Temp Button Task", 2048, nullptr, 10, nullptr);  // Test task
-    xTaskCreate(urm_task, "URM Task", 2048, nullptr, 7, nullptr);  // Test task
+    xTaskCreate(Game::task, "Game task", 8192, nullptr, 10, nullptr);
+    xTaskCreate(Led::task, "LED Task", 2048, nullptr, 8, nullptr);  // Sets and updates led status
+    xTaskCreate(Game::urm_task, "URM Task", 2048, nullptr, 7, nullptr); // Sets the muffle cutoff based on URM
 }

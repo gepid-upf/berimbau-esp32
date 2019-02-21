@@ -16,6 +16,8 @@
 
 #include <freertos/task.h>
 
+#include <Interface.h>
+
 std::vector<Button*> Button::buttons;
 const char *Button::TAG = "Button";
 xQueueHandle Button::gpio_evt_queue = nullptr;
@@ -24,7 +26,8 @@ xQueueHandle Button::gpio_evt_queue = nullptr;
 // ISR
 void IRAM_ATTR gpio_isr_handler(void* button)
 {
-    uint32_t gpio_num = (uint32_t)button;
+    static uint32_t DRAM_ATTR gpio_num;
+    gpio_num = (uint32_t)button;
     xQueueSendFromISR(Button::gpio_evt_queue, &gpio_num, nullptr);
 }
 
@@ -82,35 +85,19 @@ Button::State Button::get_state()
 // Class functions
 void Button::config_gpio()
 {
-    uint32_t gpio_sel = 0;
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+    
+    // ESP_INTR_FLAG_IRAM
+    gpio_install_isr_service(0);
 
     for(int i = 0; i < buttons.size(); i++){
-        gpio_sel |= BIT(buttons[i]->get_num());
-    }
-
-    gpio_config_t io_conf;
-    //interrupt on both edges (pressed, unpressed, released)
-    io_conf.intr_type = GPIO_INTR_ANYEDGE;
-    //set as input
-    io_conf.mode = GPIO_MODE_INPUT;
-    //disable pull-down mode
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    //enable pull-up mode
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-    //configure GPIO with the given settings
-
-    //select the pins to configure
-    io_conf.pin_bit_mask = gpio_sel;
-    gpio_config(&io_conf);
-
-    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
-
-    //install gpio isr service
-    gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
-    //hook isr handler for specific gpio pin
-    for(int i = 0; i < buttons.size(); i++) {
+        gpio_set_direction(buttons[i]->get_num(), GPIO_MODE_INPUT);
+        gpio_set_intr_type(buttons[i]->get_num(), GPIO_INTR_ANYEDGE);
+        if(buttons[i]->get_num() < 34) gpio_set_pull_mode(buttons[i]->get_num(), GPIO_PULLUP_ONLY);
         gpio_isr_handler_add(buttons[i]->get_num(), gpio_isr_handler, (void*)buttons[i]->get_num());
+        gpio_intr_enable(buttons[i]->get_num());
     }
+    
 }
 
 void Button::task(void *nullpar)
@@ -120,6 +107,8 @@ void Button::task(void *nullpar)
     uint32_t current_tick;
     uint32_t io_num = 0; 
     bool io_level = false;
+
+    Interface::loaded();
     
     while(true){
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)){  // Queue acts as Semaphore, but receives a value.

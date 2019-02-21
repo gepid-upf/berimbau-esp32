@@ -77,19 +77,23 @@ public:
      */
     static void set_muffle_cutoff(uint32_t cutoff);
 
-private:
-    const int16_t *sample_data;
-    const uint16_t sample_size;
-    bool apply_dsp;
-    volatile uint16_t it;
-    volatile bool playing;
-
     /**
      * @brief Gets the playing state of the voice.
      * 
      * @returns True if playing
      */
     bool is_playing();
+
+    static uint8_t get_voices_count();
+
+    static Audio *get_voice_ptr(uint8_t index);
+
+private:
+    const int16_t *sample_data;
+    const uint16_t sample_size;
+    bool apply_dsp;
+    volatile uint16_t it;
+    volatile bool playing;
 
     /**
      * @brief Gets the next sample from the array.

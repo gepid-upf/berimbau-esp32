@@ -20,16 +20,21 @@
 
 #include <math.h> // ceil() log2()
 
+#include <Interface.h>
+
 const char *Audio::TAG = "Audio";
-std::vector<Audio*> Audio::voices;
+std::vector<Audio*> DRAM_ATTR Audio::voices;
 //uint8_t Audio::shift_n = 0;
 timer_group_t Audio::timer_group = TIMER_GROUP_0;
-timer_idx_t   Audio::timer_num = TIMER_0;
-timg_dev_t *Audio::tmrg_ptr = nullptr;
-Lpf Audio::muffle(44101, 21000);
+timer_idx_t DRAM_ATTR  Audio::timer_num = TIMER_0;
+timg_dev_t  DRAM_ATTR *Audio::tmrg_ptr = nullptr;
+Lpf DRAM_ATTR Audio::muffle(44101, 21000);
 
 void IRAM_ATTR dac_timing(void *nullpar)
 {
+    static int32_t DRAM_ATTR out = 0;
+    static int DRAM_ATTR i = 0;
+
     // Update timer status
     Audio::tmrg_ptr->hw_timer[Audio::timer_num].update = 1;
     // Can't have pointer to bitfield.
@@ -49,9 +54,9 @@ void IRAM_ATTR dac_timing(void *nullpar)
     // MIX!
     // This will be shifted n bits to right, to the value of 32768 that is the
     // center of the wave.
-    int32_t out = 0; // << Audio::shift_n;
+    out = 0; // << Audio::shift_n;
 
-    for(int i = 0; i < Audio::voices.size(); i++){
+    for(i = 0; i < Audio::voices.size(); i++){
         if(Audio::voices[i]->is_playing() && Audio::voices[i]->apply_dsp)
             out += Audio::voices[i]->get_next();
     }
@@ -84,14 +89,15 @@ Audio::Audio(const int16_t *_sample_data, const uint16_t _sample_size, bool _app
     voices.push_back(this);
 }
 
-bool Audio::is_playing()
+bool IRAM_ATTR Audio::is_playing()
 {
     return playing;
 }
 
-int16_t Audio::get_next()
+int16_t IRAM_ATTR Audio::get_next()
 {
-    int16_t ret = sample_data[it++];
+    static int16_t DRAM_ATTR ret;
+    ret = sample_data[it++];
     if(it >= sample_size) playing = false;
     return ret;
 }
@@ -145,7 +151,8 @@ void Audio::timer_config()
     timer_enable_intr(timer_group, timer_num);
 
     // Set the function wich the interrupt will run
-    timer_isr_register(timer_group, timer_num, dac_timing, nullptr, ESP_INTR_FLAG_IRAM, nullptr);
+    // ESP_INTR_FLAG_IRAM can't be used because dac_output_voltage is outside IRAM
+    timer_isr_register(timer_group, timer_num, dac_timing, nullptr, 0, nullptr);
 
     // Enable the timer
     timer_start(timer_group, timer_num);
@@ -175,4 +182,16 @@ void Audio::init(timer_group_t _timer_group, timer_idx_t _timer_num)
 
     dac_config();
     timer_config();
+
+    Interface::loaded();
+}
+
+uint8_t Audio::get_voices_count()
+{
+    return voices.size();
+}
+
+Audio *Audio::get_voice_ptr(uint8_t index)
+{
+    return voices[index];
 }

@@ -16,6 +16,8 @@
 
 #include <freertos/task.h>
 
+#include <Interface.h>
+
 std::vector<Led*> Led::leds;
 const char *Led::TAG = "LED";
 
@@ -86,6 +88,8 @@ void Led::init()
 void Led::task(void *nullpar)
 {
     init();
+
+    Interface::loaded();
 
     while(true){
         for(int i = 0; i < leds.size(); i++){
