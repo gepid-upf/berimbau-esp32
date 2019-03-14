@@ -18426,6 +18426,8 @@ grid 2.3 mm</description>
 <part name="R17" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0207/10" package3d_urn="urn:adsk.eagle:package:23491/2" value="100R"/>
 <part name="R18" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0207/10" package3d_urn="urn:adsk.eagle:package:23491/2" value="100R"/>
 <part name="R19" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0207/10" package3d_urn="urn:adsk.eagle:package:23491/2" value="100R"/>
+<part name="R20" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0207/10" package3d_urn="urn:adsk.eagle:package:23491/2" value="5k2"/>
+<part name="GND26" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -18645,6 +18647,13 @@ um conjunto</text>
 <attribute name="NAME" x="115.57" y="44.6786" size="1.778" layer="95"/>
 <attribute name="VALUE" x="115.57" y="39.878" size="1.778" layer="96"/>
 </instance>
+<instance part="R20" gate="G$1" x="0" y="-50.8" smashed="yes" rot="R180">
+<attribute name="NAME" x="3.81" y="-52.2986" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="3.81" y="-47.498" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="GND26" gate="1" x="-12.7" y="-55.88" smashed="yes">
+<attribute name="VALUE" x="-15.24" y="-58.42" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -18736,8 +18745,12 @@ um conjunto</text>
 <segment>
 <pinref part="A10" gate="G$1" pin="COMP/TRIG"/>
 <wire x1="10.16" y1="-38.1" x2="10.16" y2="-43.18" width="0.1524" layer="91"/>
-<wire x1="10.16" y1="-43.18" x2="5.08" y2="-43.18" width="0.1524" layer="91"/>
-<label x="5.08" y="-43.18" size="1.778" layer="95" rot="R180" xref="yes"/>
+<wire x1="10.16" y1="-43.18" x2="-5.08" y2="-43.18" width="0.1524" layer="91"/>
+<label x="-2.54" y="-43.18" size="1.778" layer="95" rot="R180" xref="yes"/>
+<wire x1="10.16" y1="-43.18" x2="10.16" y2="-50.8" width="0.1524" layer="91"/>
+<junction x="10.16" y="-43.18"/>
+<pinref part="R20" gate="G$1" pin="1"/>
+<wire x1="10.16" y1="-50.8" x2="5.08" y2="-50.8" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="LCD_MOSI" class="0">
@@ -19027,6 +19040,12 @@ um conjunto</text>
 <junction x="127" y="50.8"/>
 <wire x1="127" y1="22.86" x2="127" y2="43.18" width="0.1524" layer="91"/>
 <junction x="127" y="43.18"/>
+</segment>
+<segment>
+<pinref part="R20" gate="G$1" pin="2"/>
+<wire x1="-5.08" y1="-50.8" x2="-12.7" y2="-50.8" width="0.1524" layer="91"/>
+<wire x1="-12.7" y1="-50.8" x2="-12.7" y2="-53.34" width="0.1524" layer="91"/>
+<pinref part="GND26" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="B_BLUE" class="0">
