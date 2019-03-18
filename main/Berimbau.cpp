@@ -37,9 +37,9 @@ static Button b_red(GPIO_NUM_18);
 static Button b_green(GPIO_NUM_19);
 static Button b_pink(GPIO_NUM_16);
 
-static Button b_left(GPIO_NUM_23);
+static Button b_left(GPIO_NUM_32);
 static Button b_right(GPIO_NUM_22);
-static Button b_up(GPIO_NUM_32);
+static Button b_up(GPIO_NUM_23);
 static Button b_down(GPIO_NUM_33);
 
 static Audio DRAM_ATTR a_moeda(moeda_data, moeda_length);
