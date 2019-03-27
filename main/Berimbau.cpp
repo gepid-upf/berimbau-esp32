@@ -34,8 +34,8 @@ static Button b_solta(GPIO_NUM_35);
 
 static Button b_blue(GPIO_NUM_17);
 static Button b_red(GPIO_NUM_18);
-static Button b_green(GPIO_NUM_19);
-static Button b_pink(GPIO_NUM_16);
+static Button b_green(GPIO_NUM_16);
+static Button b_pink(GPIO_NUM_19);
 
 static Button b_left(GPIO_NUM_32);
 static Button b_right(GPIO_NUM_22);
