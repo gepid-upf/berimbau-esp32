@@ -314,7 +314,7 @@ void Game::rec_save(char *file)
     sprintf(buf, "/spiffs/recs/%s.dat", file);
 
     // Check if space available!
-    FILE *fil = fopen(buf, "w");
+    FILE *fil = fopen(buf, "wb");
     for(uint16_t i = 0; i < rec_array.size(); i++)
         fwrite((const void*)&rec_array[i], sizeof(beat_t), 1, fil);
     
@@ -399,9 +399,7 @@ void Game::load(const char *file)
 
     char buf[56];
     sprintf(buf, "/spiffs/recs/%s", file);
-    FILE *recfile = nullptr;
-
-    recfile = fopen(buf, "rb");
+    FILE *recfile = fopen(buf, "rb");
 
     rec_sz /= sizeof(beat_t);
 
@@ -487,7 +485,7 @@ void Game::unload()
     FILE *fil = fopen(buf, "a");
     char *rtm = strtok(rec_name, ".");
 
-    char log_line[70];
+    char log_line[80];
     switch(rpt_st){
     case 0:
         sprintf(log_line, "%s,%u,%u,%u%%\n", rtm, get_listen(), get_tries(), get_precision());
