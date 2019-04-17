@@ -65,7 +65,7 @@ void IRAM_ATTR dac_timing(void *nullpar)
     out = Audio::muffle.update(out);
 
     // Sum signals not succetible to dsp effects.
-    for(int i = 0; i < Audio::voices.size(); i++){
+    for(i = 0; i < Audio::voices.size(); i++){
         if(Audio::voices[i]->is_playing() && !Audio::voices[i]->apply_dsp)
             out += Audio::voices[i]->get_next();
     }
@@ -79,7 +79,7 @@ void IRAM_ATTR dac_timing(void *nullpar)
 }
 
 // Object functions
-Audio::Audio(const int16_t *_sample_data, const uint16_t _sample_size, bool _apply_dsp) : 
+Audio::Audio(const int16_t *_sample_data, const uint32_t _sample_size, bool _apply_dsp) : 
                                                                         sample_data(_sample_data),
                                                                         sample_size(_sample_size),
                                                                         apply_dsp(_apply_dsp),

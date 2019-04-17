@@ -40,7 +40,7 @@ public:
      * @param *_sample_data Pointer to the sample array.
      * @param _sample_size Size of the sample.
      */
-    Audio(const int16_t *_sample_data, const uint16_t _sample_size, bool apply_dsp = true);
+    Audio(const int16_t *_sample_data, const uint32_t _sample_size, bool apply_dsp = true);
 
     /**
      * @brief Sets a voice active or inactive.
@@ -90,9 +90,9 @@ public:
 
 private:
     const int16_t *sample_data;
-    const uint16_t sample_size;
+    const uint32_t sample_size;
     bool apply_dsp;
-    volatile uint16_t it;
+    volatile uint32_t it;
     volatile bool playing;
 
     /**
