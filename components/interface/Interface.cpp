@@ -532,9 +532,12 @@ void Interface::sel_char()
             break;
         case State::REC_INPUT:
             rec[key_cnt] = '\0';
-            if(Game::overwrite(rec))
+            if(Game::overwrite(rec)) {
+                if(Game::check_preset(rec)){
+                    break;
+                }
                 overwrite();
-            else
+            } else
                 record();
             break;
         default:
@@ -1040,8 +1043,8 @@ void Interface::simple_load(char *hdr, char *msg)
 
 void Interface::print_list()
 {
-    char tmp[43]; // "##. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\0" 38 max. rec length
-    char cstr[43];
+    char tmp[100]; // "##. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\0" 38 max. rec length
+    char cstr[100];
     for(int i = 0; i < 4 && i < challenges.size(); i++){
         strcpy(cstr, challenges[i + ch_top].c_str());
         sprintf(tmp, "%02d. %s", ch_top+i+1, strtok(cstr, "."));

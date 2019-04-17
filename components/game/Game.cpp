@@ -182,6 +182,7 @@ void Game::set_state(State sta)
     xSemaphoreTake(mtx, portMAX_DELAY);
     state = sta;
     xSemaphoreGive(mtx);
+    Audio::set_muffle_cutoff(20000);
 }
 
 void Game::urm_task(void *nullpar)
@@ -192,9 +193,10 @@ void Game::urm_task(void *nullpar)
 
     while(true){
         switch(state){
+        case State::REPEAT:
         case State::PLAY:
             if(urm.pulse_trigger()) // No need for vTaskDelay. It already has a semaphore inside.
-                Audio::set_muffle_cutoff(urm.get_pulse_us()*20);
+                Audio::set_muffle_cutoff(urm.get_pulse_us()*27);
             break;
         default:
             vTaskDelay(250 / portTICK_PERIOD_MS);
@@ -373,7 +375,15 @@ void Game::erase(const char *rec)
 void Game::rm()
 {
     state = State::IDLE;
-    rm_ret = remove(rec_buf);
+    if(!strcmp(rec_buf, "/spiffs/recs/ANGOLA.dat") || 
+        !strcmp(rec_buf, "/spiffs/recs/ANGOLA LENTO.dat") || 
+        !strcmp(rec_buf, "/spiffs/recs/CAVALARIA.dat") || 
+        !strcmp(rec_buf, "/spiffs/recs/CAVALARIA LENTO.dat")){
+
+        rm_ret = 1;
+    } else {
+        rm_ret = remove(rec_buf);
+    }
     Interface::loaded();
 }
 
@@ -696,10 +706,24 @@ void Game::add_player()
     sprintf(buf, "/spiffs/logs/%s.csv", player);
     if(get_sz(buf) <= 0){ // New player!
         FILE *fil = fopen(buf, "w");
-        fprintf(fil, "#ritmo,audicoes,repeticoes,precisao (0 = desistencia)\n");
+        fprintf(fil, "#ritmo,audicoes,repeticoes,precisao/ultimo erro\n");
         fclose(fil);
     }
 
     state = State::IDLE;
     Interface::loaded();
+}
+
+bool Game::check_preset(char *name)
+{
+    char buf[80];
+    sprintf(buf, "/spiffs/recs/%s.dat", name);
+    if(!strcmp(buf, "/spiffs/recs/ANGOLA.dat") || 
+        !strcmp(buf, "/spiffs/recs/ANGOLA LENTO.dat") || 
+        !strcmp(buf, "/spiffs/recs/CAVALARIA.dat") || 
+        !strcmp(buf, "/spiffs/recs/CAVALARIA LENTO.dat")){
+
+        return true;
+    } else
+        return false;
 }

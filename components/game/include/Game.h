@@ -68,6 +68,7 @@ public:
     static uint8_t get_precision();
 
     static void set_player(char *name);
+    static bool check_preset(char *name);
 
 private:
     static const char *TAG;
