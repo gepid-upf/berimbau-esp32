@@ -73,6 +73,8 @@ void Game::task(void *nullpar)
                 a_solta->set_active(false); // Moeda (coin) presses the string and the solta (loose) sound stops.
                 l_moeda->blink(a_moeda->get_length()/44.101);
                 l_solta->turn_off();
+                l_presa->turn_off();
+                l_caxixi->turn_off();
                 if(temp_state == State::RECORD)
                     record(Instrument::MOEDA);
             }
@@ -81,18 +83,26 @@ void Game::task(void *nullpar)
                 a_solta->set_active(false);
                 l_presa->blink(a_presa->get_length()/44.101);
                 l_solta->turn_off();
+                l_moeda->turn_off();
+                l_caxixi->turn_off();
                 if(temp_state == State::RECORD)
                     record(Instrument::PRESA);
             }
             if(b_caxixi->get_state() == Button::State::PRESSED){
                 a_caxixi->set_active();
                 l_caxixi->blink(a_caxixi->get_length()/44.101);
+                l_solta->turn_off();
+                l_presa->turn_off();
+                l_moeda->turn_off();
                 if(temp_state == State::RECORD)
                     record(Instrument::CAXIXI);
             }
             if(b_solta->get_state() == Button::State::PRESSED){
                 a_solta->set_active();
                 l_solta->blink(a_solta->get_length()/44.101);
+                l_moeda->turn_off();
+                l_presa->turn_off();
+                l_caxixi->turn_off();
                 if(temp_state == State::RECORD)
                     record(Instrument::SOLTA);
             }
@@ -452,22 +462,32 @@ void Game::play_loaded()
         case Instrument::CAXIXI:
             a_caxixi->set_active();
             l_caxixi->blink(a_caxixi->get_length()/44.101);
+            l_solta->turn_off();
+            l_presa->turn_off();
+            l_moeda->turn_off();
             break;
         case Instrument::MOEDA:
             a_moeda->set_active();
             a_solta->set_active(false); // Moeda (coin) presses the string and the solta (loose) sound stops.
             l_moeda->blink(a_moeda->get_length()/44.101);
             l_solta->turn_off();
+            l_presa->turn_off();
+            l_caxixi->turn_off();
             break;
         case Instrument::PRESA:
             a_presa->set_active();
             a_solta->set_active(false);
             l_presa->blink(a_presa->get_length()/44.101);
             l_solta->turn_off();
+            l_moeda->turn_off();
+            l_caxixi->turn_off();
             break;
         case Instrument::SOLTA:
             a_solta->set_active();
             l_solta->blink(a_solta->get_length()/44.101);
+            l_presa->turn_off();
+            l_moeda->turn_off();
+            l_caxixi->turn_off();
             break;
         default:
             break;
@@ -489,38 +509,7 @@ void Game::unload()
     free(rec_ptr);
     rec_ptr = nullptr;
 
-    // Save log
-    char buf[70];
-    sprintf(buf, "/spiffs/logs/%s.csv", player);
-    FILE *fil = fopen(buf, "a");
-    char *rtm = strtok(rec_name, ".");
-
-    char log_line[80];
-    switch(rpt_st){
-    case 0:
-        sprintf(log_line, "%s,%u,%u,%u%%\n", rtm, get_listen(), get_tries(), get_precision());
-        break;
-    case -1:
-        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "acelerou ritmo");
-        break;
-    case -2:
-        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "instrumento errado");
-        break;
-    case -3:
-        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "atrasou ritmo");
-        break;
-    case -8:
-        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "nao tocou");
-        break;
-    case -9:
-        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "nao ouviu");
-        break;
-    default:
-        break;
-    }
-
-    fprintf(fil, "%s", log_line);
-    fclose(fil);
+    save_log();
 
     Interface::loaded(); // signalize end
 }
@@ -550,6 +539,8 @@ void Game::repeat()
             a_solta->set_active(false); // Moeda (coin) presses the string and the solta (loose) sound stops.
             l_moeda->blink(a_moeda->get_length()/44.101);
             l_solta->turn_off();
+            l_presa->turn_off();
+            l_caxixi->turn_off();
             
             if(first) {
                 first = false;
@@ -579,6 +570,8 @@ void Game::repeat()
             a_solta->set_active(false);
             l_presa->blink(a_presa->get_length()/44.101);
             l_solta->turn_off();
+            l_moeda->turn_off();
+            l_caxixi->turn_off();
 
             if(first) {
                 first = false;
@@ -606,6 +599,9 @@ void Game::repeat()
         if(b_caxixi->get_state() == Button::State::PRESSED){
             a_caxixi->set_active();
             l_caxixi->blink(a_caxixi->get_length()/44.101);
+            l_presa->turn_off();
+            l_moeda->turn_off();
+            l_solta->turn_off();
             
             if(first) {
                 first = false;
@@ -633,6 +629,9 @@ void Game::repeat()
         if(b_solta->get_state() == Button::State::PRESSED){
             a_solta->set_active();
             l_solta->blink(a_solta->get_length()/44.101);
+            l_presa->turn_off();
+            l_moeda->turn_off();
+            l_caxixi->turn_off();
             
             if(first) {
                 first = false;
@@ -726,4 +725,40 @@ bool Game::check_preset(char *name)
         return true;
     } else
         return false;
+}
+
+void Game::save_log()
+{
+    // Save log
+    char buf[70];
+    sprintf(buf, "/spiffs/logs/%s.csv", player);
+    FILE *fil = fopen(buf, "a");
+    char *rtm = strtok(rec_name, ".");
+
+    char log_line[80];
+    switch(rpt_st){
+    case 0:
+        sprintf(log_line, "%s,%u,%u,%u%%\n", rtm, get_listen(), get_tries(), get_precision());
+        break;
+    case -1:
+        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "acelerou ritmo");
+        break;
+    case -2:
+        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "instrumento errado");
+        break;
+    case -3:
+        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "atrasou ritmo");
+        break;
+    case -8:
+        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "nao tocou");
+        break;
+    case -9:
+        sprintf(log_line, "%s,%u,%u,%s\n", rtm, get_listen(), get_tries(), "nao ouviu");
+        break;
+    default:
+        break;
+    }
+
+    fprintf(fil, "%s", log_line);
+    fclose(fil);
 }

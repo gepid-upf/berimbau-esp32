@@ -174,9 +174,10 @@ void Interface::task(void *nullpar)
                 challenge_menu();
                 break;
             } else if(b_green->get_state() == Button::State::PRESSED){
-                // Stop repeating.
+                // Stop repeating. and go back to listening again
                 Game::set_state(Game::State::IDLE);
                 vSemaphoreDelete(load_cnt);
+                Game::save_log(); // Quitted repeat
                 listen_scr();
                 break;
             }
@@ -191,10 +192,13 @@ void Interface::task(void *nullpar)
                 simple_load("Aguarde", "Salvando log...");
 
                 challenge_menu();
-            } else if(b_green->get_state() == Button::State::PRESSED)
+            } else if(b_green->get_state() == Button::State::PRESSED){
+                Game::save_log(); // Last error
                 listen_scr();
-            else if(b_blue->get_state() == Button::State::PRESSED)
+            } else if(b_blue->get_state() == Button::State::PRESSED){
+                Game::save_log(); // Last error
                 repeat_scr();
+            }
 
             break;
         case State::SUCCESS:

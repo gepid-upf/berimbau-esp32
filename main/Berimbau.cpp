@@ -27,10 +27,10 @@
 #include "solta.h"
 
 // Members that are added to a static vector inside the class must be initialized here.
-static Button b_moeda(GPIO_NUM_34);
-static Button b_caxixi(GPIO_NUM_35);
-static Button b_presa(GPIO_NUM_39);
-static Button b_solta(GPIO_NUM_36);
+static Button b_moeda(GPIO_NUM_39);
+static Button b_caxixi(GPIO_NUM_36);
+static Button b_presa(GPIO_NUM_35);
+static Button b_solta(GPIO_NUM_34);
 
 static Button b_blue(GPIO_NUM_32);
 static Button b_red(GPIO_NUM_23);
@@ -47,9 +47,9 @@ static Audio DRAM_ATTR a_caxixi(caxixi_data, caxixi_length, false);
 static Audio DRAM_ATTR a_solta(solta_data, solta_length);
 static Audio DRAM_ATTR a_presa(presa_data, presa_length);
 
-static Led l_moeda(GPIO_NUM_5);
-static Led l_caxixi(GPIO_NUM_0);
-static Led l_presa(GPIO_NUM_4);
+static Led l_moeda(GPIO_NUM_4);
+static Led l_caxixi(GPIO_NUM_5);
+static Led l_presa(GPIO_NUM_0);
 static Led l_solta(GPIO_NUM_2);
 
 static const char* TAG = "MAIN";

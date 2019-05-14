@@ -70,6 +70,8 @@ public:
     static void set_player(char *name);
     static bool check_preset(char *name);
 
+    static void save_log();
+
 private:
     static const char *TAG;
 
