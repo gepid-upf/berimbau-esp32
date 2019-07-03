@@ -21,7 +21,7 @@ This is completely optional, but recommended. The PCB was made using a Roland EG
 
 ### Editing the Flash contents
 
-There is a tool to edit the contents of the flash memory and dump the utilization logs. You can find it at [berimbau-tool-gui](https://github.com/aedalzotto/berimbau-tool-gui).
+There is a tool to edit the contents of the flash memory and dump the utilization logs. You can find it at [berimbau-tool-gui](https://github.com/gepid-upf/berimbau-tool-gui).
 
 ## Authors
 
